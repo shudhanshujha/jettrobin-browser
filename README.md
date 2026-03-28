@@ -1,5 +1,10 @@
 # 🦅 Jett-Robin Browser
 
+![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![PyQt6](https://img.shields.io/badge/PyQt6-v6.x-blue?style=for-the-badge&logo=qt&logoColor=white)
+![Adblock](https://img.shields.io/badge/AdBlock-Enabled-critical?style=for-the-badge)
+![Privacy](https://img.shields.io/badge/Privacy-Focused-success?style=for-the-badge)
+
 **Jett-Robin** is a high-performance, privacy-focused, and modern web browser built using Python and the Chromium-powered PyQt6-WebEngine. It combines a sleek dark-themed UI with robust security features to provide a fast and secure browsing experience.
 
 ## ✨ Features
