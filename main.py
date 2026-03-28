@@ -15,6 +15,7 @@ from adblockparser import AdblockRules
 APP_NAME = "Jett-Robin"
 LOG_FILE = "jettrobin.log"
 HISTORY_FILE = "history.json"
+SETTINGS_FILE = "settings.json"
 
 def log(msg):
     with open(LOG_FILE, "a", encoding="utf-8") as f:
@@ -144,7 +145,11 @@ class JettRobinBrowser(QMainWindow):
             "DuckDuckGo": "https://duckduckgo.com/?q={}",
             "Bing": "https://www.bing.com/search?q={}"
         }
-        self.current_search_engine = "Google"
+        
+        # Load Settings (Preferred Search Engine)
+        self.current_search_engine = self.load_settings().get("search_engine", "Google")
+        if self.is_private:
+            self.current_search_engine = "DuckDuckGo"
 
         # Toolbar
         self.navbar = QToolBar("Navigation")
@@ -170,9 +175,11 @@ class JettRobinBrowser(QMainWindow):
 
         self.engine_selector = QComboBox()
         self.engine_selector.addItems(self.search_engines.keys())
+        self.engine_selector.setCurrentText(self.current_search_engine)
+        self.engine_selector.currentTextChanged.connect(self.change_search_engine)
         self.navbar.addWidget(self.engine_selector)
 
-        self.navbar.addAction(QAction("➕", self, triggered=lambda: self.add_new_tab(QUrl("https://www.google.com"))))
+        self.navbar.addAction(QAction("➕", self, triggered=self.add_new_tab_action))
         self.navbar.addAction(QAction("🕵️", self, triggered=self.open_private_window))
 
         # --- History Initialization ---
@@ -181,12 +188,22 @@ class JettRobinBrowser(QMainWindow):
             self.load_history()
 
         # Start
-        start_url = "https://www.google.com"
-        self.add_new_tab(QUrl(start_url), "Home")
+        start_home = "https://www.google.com"
+        if self.current_search_engine == "DuckDuckGo": start_home = "https://duckduckgo.com"
+        elif self.current_search_engine == "Bing": start_home = "https://www.bing.com"
+        
+        self.add_new_tab(QUrl(start_home), "Home")
         self.private_windows = []
 
     def current_browser(self):
         return self.tabs.currentWidget()
+
+    def add_new_tab_action(self):
+        engine = self.engine_selector.currentText()
+        home_url = "https://www.google.com"
+        if engine == "DuckDuckGo": home_url = "https://duckduckgo.com"
+        elif engine == "Bing": home_url = "https://www.bing.com"
+        self.add_new_tab(QUrl(home_url), "New Tab")
 
     def add_new_tab(self, qurl=None, label="Blank"):
         browser = QWebEngineView()
@@ -216,6 +233,11 @@ class JettRobinBrowser(QMainWindow):
             url = QUrl(self.search_engines[self.engine_selector.currentText()].format(text.replace(" ", "+")))
         self.current_browser().setUrl(url)
 
+    def change_search_engine(self, engine_name):
+        self.current_search_engine = engine_name
+        if not self.is_private:
+            self.save_settings({"search_engine": engine_name})
+
     def close_tab(self, i):
         if self.tabs.count() > 1:
             self.tabs.removeTab(i)
@@ -231,6 +253,23 @@ class JettRobinBrowser(QMainWindow):
         win = JettRobinBrowser(is_private=True)
         win.show()
         self.private_windows.append(win)
+
+    # --- Settings Logic ---
+    def load_settings(self):
+        if os.path.exists(SETTINGS_FILE):
+            try:
+                with open(SETTINGS_FILE, "r") as f:
+                    return json.load(f)
+            except: return {}
+        return {}
+
+    def save_settings(self, settings_dict):
+        try:
+            current = self.load_settings()
+            current.update(settings_dict)
+            with open(SETTINGS_FILE, "w") as f:
+                json.dump(current, f)
+        except: pass
 
     # --- History Logic ---
     def load_history(self):
