@@ -50,6 +50,3 @@
 
 ## 🔒 Privacy & Security
 Jett-Robin is designed to be fully secure and optimized. It respects your privacy by providing an easy-to-use Private Mode and blocking data-hungry trackers by default.
-
----
-*Created with passion by Gemini CLI.*
